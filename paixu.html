@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+</body>
+<script>
+  /*
+  * 情景假设：假设数组 arr 为某一个时间段内股票价格的浮动情况，要求找出持股人的最大收益（及最佳买入和最佳卖出的时间）
+  * 说明：最大子数组指的是 最佳买入时间 到 最佳卖出时间 所组成的数组（及收益最大数组列表）
+  * */
+  // 通过排列组合进行求解
+  let arr = [13, -3, -25, 20, -3, -16, -23, 18, 20, -7, 12, -5, -22, 15, -4, 7]
+  //         0   1    2    3   4   5    6    7   8   9  10  11   12  13  14  15
+  /*
+  * 分析：股票在买入之后的任意一天卖出，求解中间最大差异的子数组的集合，及在第8天（下标为7）买进，在第11天（下标为10）卖出收益最大
+  * */
+  let combination = {
+    zuhe: function () {
+      console.time('testForEach')
+      if (arr && arr.length > 1) {
+        let [len, sum, minIndex, maxIndex] = [arr.length, arr[0] + arr[1], null, null];
+        // 通过嵌套循环进行组合
+        for (let i = 0; i < len; i++) {
+          for (let j = i + 1; j < len; j++) {
+            let sum1 = 0
+            let mixChildArr = arr.slice(i, j + 1)
+            // 针对任意卖出时间的中间集合进行求和
+            sum1 = mixChildArr.reduce(function (x, y) {
+              return x + y
+            }, 0)
+            if (sum1 > sum) {
+              sum = sum1
+              minIndex = i // 记录买入时间
+              maxIndex = j // 记录卖出时间
+            }
+          }
+        }
+        console.log(`在第${minIndex + 1}天买入，在${maxIndex + 1}天卖出的时候收益最大为：${sum}元`)
+      } else if (arr) {
+        let sum = arr[0]
+        console.log(sum)
+      } else {
+        alert('数组不存在')
+      }
+      console.timeEnd('testForEach')
+    }
+  }
+  combination.zuhe()
+  /*
+  * 采用分治法
+  * */
+
+  let findMixChildArr = {
+    arr: [13, -3, -25, 20, -3, -16, -23, 18, 20, -7, 12, -5, -22, 15, -4, 7],
+    //    0   1    2    3   4   5    6    7   8   9  10  11   12  13  14  15
+    low: 0,
+    high: null,
+    mid: null,
+    leftMaxIndex: null, // 左边最大的值的下表
+    rightMaxIndex: null, // 右边最大的值的下表
+    // 求该事件段内股票的最小值
+    minSum: function () {
+      return this.arr.filter((item) => {
+        return item < 0
+      }).reduce((x, y) => {
+        return x + y
+      })
+    },
+    // 求最大子数组的具体方法
+    findMixChildArrSubFun: function (arr, low, mid, high) {
+      let [_leftSum, leftInfinite] = [0, this.minSum()] // 初始化一个默认值
+      // 针对前半部分进行求和找出最适合卖出的当天
+      for (let i = mid; i > low; i--) {
+        _leftSum += arr[i]
+        if (_leftSum > leftInfinite) {
+          leftInfinite = _leftSum
+          this.leftMaxIndex = i
+        }
+      }
+      let [_rightSum, rightInfinite] = [0, this.minSum()]
+      // 针对后半部分进行求和找出最适合买进的当天
+      for (let j = mid + 1; j < high; j++) {
+        _rightSum += arr[j]
+        if (_rightSum > rightInfinite) {
+          rightInfinite = _rightSum
+          this.rightMaxIndex = j
+        }
+      }
+      console.log(`在第${this.leftMaxIndex + 1}天买入, 在${this.rightMaxIndex + 1}天卖出, 最大收益为${leftInfinite + rightInfinite}元`)
+    },
+    // 条件判断
+    conditions: function () {
+      this.high = this.arr.length // 初始化最大范围的下表
+      this.mid = (this.low + this.high) / 2 // 初始化中间界限
+      this.findMixChildArrSubFun(this.arr, this.low, this.mid, this.high)
+    }
+  }
+  console.time('begin')
+  findMixChildArr.conditions()
+  console.timeEnd('计时结束')
+</script>
+</html>
